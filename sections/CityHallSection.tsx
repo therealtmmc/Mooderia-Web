@@ -28,7 +28,8 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
 
   const allUsers: User[] = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('mooderia_all_users') || '[]');
+      const stored = localStorage.getItem('mooderia_all_users');
+      return stored ? JSON.parse(stored) : [];
     } catch (e) {
       return [];
     }
@@ -36,10 +37,11 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
 
   const filteredCitizens = useMemo(() => {
     if (!searchTerm.trim()) return [];
+    const lowerSearch = searchTerm.toLowerCase();
     return allUsers.filter(u => 
       u.username !== currentUser.username && 
-      (u.displayName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-       u.username.toLowerCase().includes(searchTerm.toLowerCase()))
+      (u.displayName.toLowerCase().includes(lowerSearch) || 
+       u.username.toLowerCase().includes(lowerSearch))
     );
   }, [searchTerm, allUsers, currentUser.username]);
 
@@ -74,7 +76,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
     if (selectedCitizen && activeTab === 'Community') {
       onReadMessages(selectedCitizen.username);
     }
-  }, [selectedCitizen, messages.length, activeTab, onReadMessages]);
+  }, [selectedCitizen, activeTab, onReadMessages]);
 
   const handleAISend = async () => {
     if (!input.trim() || isLoading) return;
@@ -134,7 +136,6 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
 
   return (
     <div className="flex flex-col h-[85vh] gap-4">
-      {/* Tab Navigation */}
       <div className="flex flex-wrap gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-2">
         <button 
           onClick={() => setActiveTab('Pinel')}
@@ -160,17 +161,15 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
         >
           <Users size={18} /> 
           COMMUNITY
-          {Object.values(unreadPerUser).length > 0 && (
+          {Object.values(unreadPerUser).reduce((a, b) => a + b, 0) > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center border-2 border-white dark:border-slate-800">
-              {Object.values(unreadPerUser).reduce((a: number, b: number) => a + b, 0)}
+              {Object.values(unreadPerUser).reduce((a, b) => a + b, 0)}
             </span>
           )}
         </button>
       </div>
 
       <div className={`flex-1 flex flex-col md:flex-row rounded-3xl ${isDarkMode ? 'bg-slate-800' : 'bg-white'} shadow-2xl overflow-hidden border-4 border-gray-100 dark:border-slate-700`}>
-        
-        {/* Community Sidebar */}
         {activeTab === 'Community' && (
           <div className={`w-full md:w-72 border-r ${isDarkMode ? 'border-slate-700' : 'border-gray-100'} flex flex-col ${selectedCitizen ? 'hidden md:flex' : 'flex'}`}>
              <div className="p-4 border-b border-gray-100 dark:border-slate-700">
@@ -205,11 +204,10 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                        </div>
                      </button>
                    ))}
-                   {filteredCitizens.length === 0 && <p className="text-[10px] italic opacity-40 px-2">No citizens found.</p>}
                  </>
                ) : (
                  <>
-                   <p className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 px-2 mt-2">Active Conversations</p>
+                   <p className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 px-2 mt-2">Conversations</p>
                    {conversationUsers.map(u => (
                      <button 
                        key={u.username}
@@ -230,14 +228,12 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                        )}
                      </button>
                    ))}
-                   {conversationUsers.length === 0 && <p className="text-[10px] italic opacity-40 px-2 py-8 text-center">Your inbox is empty. Search for a citizen to start chatting!</p>}
                  </>
                )}
              </div>
           </div>
         )}
 
-        {/* Chat Area */}
         <div className={`flex-1 flex flex-col min-h-0 ${activeTab === 'Community' && !selectedCitizen ? 'hidden md:flex' : 'flex'}`}>
           <div className={`p-4 border-b ${isDarkMode ? 'bg-slate-700/50 border-slate-700' : 'bg-gray-50 border-gray-100'} flex items-center justify-between gap-3`}>
             <div className="flex items-center gap-3">
@@ -251,74 +247,53 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
               {activeTab === 'RonClark' && <BookOpen className="text-yellow-500" />}
               {activeTab === 'Community' && <MessageSquare className="text-blue-500" />}
               <h3 className={`font-black italic uppercase text-[11px] md:text-sm truncate ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {activeTab === 'Community' && !selectedCitizen ? 'Select a citizen to chat' : `Consulting: ${getAgentTitle()}`}
+                {activeTab === 'Community' && !selectedCitizen ? 'Select a citizen' : `Consulting: ${getAgentTitle()}`}
               </h3>
             </div>
             <div className="flex items-center gap-2">
                <ShieldCheck size={14} className="text-green-500" />
-               <span className="text-[9px] font-black text-green-500 uppercase tracking-tighter hidden sm:block">Secure Tunnel</span>
+               <span className="text-[9px] font-black text-green-500 uppercase hidden sm:block">Secure Tunnel</span>
             </div>
           </div>
-
-          {activeTab !== 'Community' && (
-            <div className={`px-6 py-2 border-b ${isDarkMode ? 'bg-amber-900/10 border-amber-900/20' : 'bg-amber-50 border-amber-100'} flex items-center gap-2`}>
-              <AlertTriangle className="text-amber-500 shrink-0" size={14} />
-              <p className={`text-[10px] font-bold ${isDarkMode ? 'text-amber-200/50' : 'text-amber-700'} leading-tight`}>
-                AI PERSONA NOTICE: Digital characters for entertainment/support. 1,500 daily request cap.
-              </p>
-            </div>
-          )}
 
           <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar">
             {activeTab === 'Community' ? (
               !selectedCitizen ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-30">
                   <Users size={64} className="mb-4" />
-                  <p className="text-lg font-black uppercase italic">City Messenger</p>
-                  <p className="text-xs font-bold max-w-xs">Talk with other citizens of Mooderia in real-time. Use the search bar to find people by name.</p>
+                  <p className="text-lg font-black italic">City Messenger</p>
+                  <p className="text-xs font-bold">Search for citizens to start a conversation.</p>
                 </div>
               ) : (
-                chatMessages.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center opacity-30">
-                    <p className="font-black uppercase italic">New Connection</p>
-                    <p className="text-[10px] font-bold mt-1">Say hello to @{selectedCitizen.username}!</p>
+                chatMessages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.sender === currentUser.username ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] p-3 md:p-4 rounded-2xl text-xs font-semibold shadow-sm ${msg.sender === currentUser.username ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
+                      {msg.text}
+                      <p className="text-[8px] mt-1 text-right font-black opacity-40">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
-                ) : (
-                  chatMessages.map((msg, i) => (
-                    <div key={msg.id} className={`flex ${msg.sender === currentUser.username ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] p-3 md:p-4 rounded-2xl text-xs md:text-sm font-semibold shadow-sm ${msg.sender === currentUser.username ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
-                        {msg.text}
-                        <p className={`text-[8px] mt-1 text-right font-black opacity-40 uppercase`}>
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
+                ))
+              )
+            ) : (
+              <>
+                {(activeTab === 'Pinel' ? pinelChat : activeTab === 'Lavoisier' ? lavoisierChat : clarkChat).map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] p-4 rounded-2xl text-xs md:text-sm font-semibold shadow-sm ${msg.role === 'user' ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
+                      {msg.text}
                     </div>
-                  ))
-                )
-              ) : (
-                <>
-                  {(activeTab === 'Pinel' ? pinelChat : activeTab === 'Lavoisier' ? lavoisierChat : clarkChat).length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center text-center opacity-40 p-8">
-                      <p className={`text-xl font-black italic uppercase ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Welcome, Citizen</p>
-                      <p className={`text-sm font-bold mt-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>How can {getAgentShortName()} assist you today?</p>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 dark:bg-slate-700 p-4 rounded-2xl animate-pulse font-black text-[10px] text-slate-600 dark:text-white uppercase">
+                      {getAgentShortName()} is typing...
                     </div>
-                  )}
-                  {(activeTab === 'Pinel' ? pinelChat : activeTab === 'Lavoisier' ? lavoisierChat : clarkChat).map((msg, i) => (
-                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[85%] p-4 rounded-2xl text-xs md:text-sm font-semibold shadow-sm ${msg.role === 'user' ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
-                        {msg.text}
-                      </div>
-                    </div>
-                  ))}
-                  {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-gray-100 dark:bg-slate-700 p-4 rounded-2xl animate-pulse font-black text-[10px] text-slate-600 dark:text-white uppercase tracking-widest">
-                        {getAgentShortName()} is transmitting...
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {(activeTab !== 'Community' || selectedCitizen) && (
@@ -329,8 +304,8 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (activeTab === 'Community' ? handleCommunitySend() : handleAISend())}
-                  placeholder={activeTab === 'Community' ? "Type a message..." : `Consult ${getAgentShortName()}...`}
-                  className={`flex-1 p-3 md:p-4 rounded-xl border-2 outline-none focus:border-blue-500 font-bold text-sm md:text-base ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-100 text-slate-900'}`}
+                  placeholder="Type your message..."
+                  className={`flex-1 p-3 md:p-4 rounded-xl border-2 outline-none focus:border-blue-500 font-bold text-sm ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white' : 'bg-gray-50 border-gray-100 text-slate-900'}`}
                 />
                 <button 
                   onClick={activeTab === 'Community' ? handleCommunitySend : handleAISend}
