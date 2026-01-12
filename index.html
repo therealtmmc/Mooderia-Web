@@ -14,64 +14,45 @@
         margin: 0;
         padding: 0;
       }
-      .kahoot-shadow {
-        box-shadow: 0 4px 0 0 rgba(0,0,0,0.2);
-      }
-      .kahoot-button-purple { background-color: #46178f; border-bottom: 4px solid #321067; }
-      .kahoot-button-blue { background-color: #1368ce; border-bottom: 4px solid #0e4c99; }
-      .kahoot-button-green { background-color: #26890c; border-bottom: 4px solid #1c6409; }
-      .kahoot-button-red { background-color: #e21b3c; border-bottom: 4px solid #b31530; }
-      .kahoot-button-yellow { background-color: #ffa602; border-bottom: 4px solid #cc8502; }
-      
-      .kahoot-button:active {
-        transform: translateY(2px);
-        border-bottom-width: 2px;
-      }
-
-      .streak-glow {
-        filter: drop-shadow(0 0 8px rgba(255, 166, 2, 0.6));
-      }
-
-      /* Custom Scrollbar for better UX */
-      ::-webkit-scrollbar {
+      .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
       }
-      ::-webkit-scrollbar-track {
+      .custom-scrollbar::-webkit-scrollbar-track {
         background: transparent;
       }
-      ::-webkit-scrollbar-thumb {
+      .custom-scrollbar::-webkit-scrollbar-thumb {
         background: #cbd5e1;
         border-radius: 10px;
       }
-      .dark ::-webkit-scrollbar-thumb {
-        background: #475569;
-      }
     </style>
     <script>
-      // Shim process.env for browser environment to prevent ReferenceErrors
+      // Crucial Fix: Define environment variables before any modules load
       window.process = {
         env: {
-          API_KEY: "" // Will be injected by the environment
+          NODE_ENV: 'production',
+          API_KEY: "" 
         }
       };
+      window.global = window;
     </script>
   <script type="importmap">
 {
   "imports": {
-    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
-    "recharts": "https://esm.sh/recharts@^3.6.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "@google/genai": "https://esm.sh/@google/genai@1.3.0",
+    "recharts": "https://esm.sh/recharts@2.15.0",
+    "lucide-react": "https://esm.sh/lucide-react@0.474.0",
+    "framer-motion": "https://esm.sh/framer-motion@12.0.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "framer-motion": "https://esm.sh/framer-motion@^12.25.0"
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
-    <!-- Entry point for the application -->
     <script type="module" src="index.tsx"></script>
   </body>
 </html>

@@ -1,45 +1,50 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Safe initialization of AI client
+const getAI = () => {
+  const apiKey = process.env.API_KEY || "";
+  return new GoogleGenAI({ apiKey });
+};
 
-// Fix: Upgraded to gemini-3-pro-preview for complex reasoning tasks (Psychiatry advice)
 export const getPsychiatristResponse = async (message: string) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: message,
     config: {
-      systemInstruction: "You are Dr. Philippe Pinel, a compassionate and expert psychiatrist in the city of Mooderia. You provide helpful advice for mental well-being while maintaining a professional yet friendly tone. You were formerly known as Dr. Mood.",
+      systemInstruction: "You are Dr. Philippe Pinel, a compassionate and expert psychiatrist in the city of Mooderia. You provide helpful advice for mental well-being while maintaining a professional yet friendly tone.",
     }
   });
   return response.text;
 };
 
-// Fix: Upgraded to gemini-3-pro-preview for complex reasoning tasks (Nutritional science)
 export const getNutritionistResponse = async (message: string) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: message,
     config: {
-      systemInstruction: "You are Dr. Antoine Lavoisier, a professional nutritionist in Mooderia. You guide users on meal plans and wellness. You were formerly known as Dr. Health.",
+      systemInstruction: "You are Dr. Antoine Lavoisier, a professional nutritionist in Mooderia. You guide users on meal plans and wellness.",
     }
   });
   return response.text;
 };
 
-// Fix: Upgraded to gemini-3-pro-preview for complex reasoning tasks (Educational guidance)
 export const getStudyGuideResponse = async (message: string) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: message,
     config: {
-      systemInstruction: "You are Sir Clark (formerly known as Sir Ron Clark), an inspiring and energetic educator in Mooderia. You help students with study methods, provide words of wisdom, and assist with assignments by explaining concepts clearly and motivating them to achieve excellence.",
+      systemInstruction: "You are Sir Clark, an inspiring and energetic educator in Mooderia. You help students with study methods and motivate them to achieve excellence.",
     }
   });
   return response.text;
 };
 
 export const getTellerResponse = async (question: string) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Predict the answer to this question in a mystical way: ${question}`,
@@ -51,6 +56,7 @@ export const getTellerResponse = async (question: string) => {
 };
 
 export const getHoroscope = async (sign: string) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Provide a daily horoscope for ${sign} today.`,
@@ -62,21 +68,22 @@ export const getHoroscope = async (sign: string) => {
 };
 
 export const getPlanetaryInsights = async (sign: string) => {
+  const ai = getAI();
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
-    contents: `Explain how current planetary movements affect the mood of a ${sign} today. Include one specific planet in transit.`,
+    contents: `Explain how current planetary movements affect the mood of a ${sign} today.`,
     config: {
-      systemInstruction: "You are a cosmic astrologer providing deep, personalized insights based on planetary aspects. CRITICAL: Do not use any Markdown symbols like asterisks (*), hashtags (#), or dashes (-) for formatting. Provide the response as plain, natural text organized into multiple clear paragraphs. Do not return a single long line of text.",
+      systemInstruction: "You are a cosmic astrologer providing deep, personalized insights based on planetary aspects. Provide plain text only.",
     }
   });
   return response.text;
 };
 
-// Fix: Improved JSON parsing with safety checks and trim() for more robust response handling
 export const getLovePrediction = async (sign1: string, sign2: string) => {
+    const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Predict love compatibility between ${sign1} and ${sign2}. Return only a JSON object with 'percentage' (0-100) and 'reason' (detailed multi-sentence explanation).`,
+        contents: `Predict love compatibility between ${sign1} and ${sign2}. Return only a JSON object with 'percentage' and 'reason'.`,
         config: {
             responseMimeType: "application/json",
             responseSchema: {
@@ -91,8 +98,6 @@ export const getLovePrediction = async (sign1: string, sign2: string) => {
     });
     
     const text = response.text;
-    if (!text) {
-        throw new Error("No response text received from the model.");
-    }
+    if (!text) throw new Error("No response text");
     return JSON.parse(text.trim());
 }
