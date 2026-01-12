@@ -5,6 +5,9 @@ import { Heart, MessageCircle, Repeat, Send, Brain, Sparkles, Wind, ShieldAlert,
 import { User, Post, Mood, Comment } from '../types';
 import { getTellerResponse } from '../services/geminiService';
 
+// Fix: Cast motion.div to any to resolve intrinsic attribute typing errors (layout, initial, animate, exit)
+const MotionDiv = motion.div as any;
+
 interface MoodSectionProps {
   user: User;
   posts: Post[];
@@ -196,7 +199,7 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
             {filteredPosts.length === 0 ? (
               <div className="py-20 text-center opacity-40 font-black italic uppercase tracking-widest text-xs">The streets are quiet...</div>
             ) : filteredPosts.map(post => (
-                <motion.div layout key={post.id} className={`p-6 rounded-[2.5rem] ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} shadow-md border-b-4 border-gray-200 dark:border-slate-700`}>
+                <MotionDiv layout key={post.id} className={`p-6 rounded-[2.5rem] ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} shadow-md border-b-4 border-gray-200 dark:border-slate-700`}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-400 to-purple-400 flex items-center justify-center text-white font-black overflow-hidden">
@@ -219,7 +222,7 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
                   {/* Comment Section */}
                   <AnimatePresence>
                     {expandedComments === post.id && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-700 space-y-4">
+                      <MotionDiv initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-700 space-y-4">
                          <div className="flex gap-2">
                            <input 
                              type="text" 
@@ -245,10 +248,10 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
                              </div>
                            ))}
                          </div>
-                      </motion.div>
+                      </MotionDiv>
                     )}
                   </AnimatePresence>
-                </motion.div>
+                </MotionDiv>
             ))}
           </div>
         </div>
@@ -263,9 +266,9 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
             <button disabled={isTellerLoading} onClick={handleTeller} className={`w-full p-4 rounded-2xl kahoot-button-yellow text-white font-black text-lg md:text-xl transition-all ${isTellerLoading ? 'opacity-50 animate-pulse' : ''}`}>{isTellerLoading ? 'CONSULTING...' : 'PREDICT MY FATE'}</button>
           </div>
           {tellerAnswer && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-12 p-6 md:p-8 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
+            <MotionDiv initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-12 p-6 md:p-8 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20">
               <p className="text-xl md:text-2xl font-black italic">"{tellerAnswer}"</p>
-            </motion.div>
+            </MotionDiv>
           )}
         </div>
       )}
@@ -274,14 +277,14 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
         <div className={`p-8 rounded-[2.5rem] ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} shadow-xl text-center min-h-[400px] flex flex-col justify-center`}>
           <AnimatePresence mode="wait">
             {quizStep === 'result' ? (
-              <motion.div key="result" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+              <MotionDiv key="result" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
                 <div className="text-6xl mb-4">{calculateQuizResult().icon}</div>
                 <h2 className="text-3xl font-black mb-2 uppercase italic text-[#26890c]">{calculateQuizResult().title}</h2>
                 <p className="text-lg font-bold opacity-70 mb-8">{calculateQuizResult().desc}</p>
                 <button onClick={() => {setQuizStep(0); setQuizAnswers([]);}} className="kahoot-button-blue px-10 py-4 rounded-2xl text-white font-black uppercase">RETAKE QUIZ</button>
-              </motion.div>
+              </MotionDiv>
             ) : (
-              <motion.div key={quizStep} initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -50, opacity: 0 }} className="space-y-6">
+              <MotionDiv key={quizStep} initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -50, opacity: 0 }} className="space-y-6">
                 <Brain className="mx-auto mb-6 text-[#26890c]" size={56} />
                 <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter">{QUIZ_QUESTIONS[quizStep].question}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -296,7 +299,7 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
                   })}
                 </div>
                 <p className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em]">Question {quizStep + 1} of {QUIZ_QUESTIONS.length}</p>
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
         </div>
@@ -310,7 +313,7 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
           
           <div className="relative w-64 h-64 flex items-center justify-center mb-10">
             {/* Pulsing Orb */}
-            <motion.div 
+            <MotionDiv 
               animate={{ 
                 scale: meditationPhase === 'Inhale' ? 1.5 : meditationPhase === 'Exhale' ? 1 : meditationPhase === 'Hold' ? 1.5 : 1,
                 opacity: meditationPhase === 'Idle' ? 0.3 : 1
@@ -318,7 +321,7 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
               transition={{ duration: meditationPhase === 'Inhale' ? 4 : meditationPhase === 'Exhale' ? 8 : 0.5 }}
               className={`absolute w-32 h-32 rounded-full blur-2xl ${meditationPhase === 'Inhale' ? 'bg-blue-400' : meditationPhase === 'Hold' ? 'bg-purple-500' : 'bg-green-400'}`}
             />
-            <motion.div 
+            <MotionDiv 
               animate={{ 
                 scale: meditationPhase === 'Inhale' ? 1.5 : meditationPhase === 'Exhale' ? 1 : meditationPhase === 'Hold' ? 1.5 : 1
               }}
@@ -328,7 +331,7 @@ const MoodSection: React.FC<MoodSectionProps> = ({ user, posts, onPost, onHeart,
             >
               <span className="text-4xl font-black italic">{timer || '--'}</span>
               <span className="text-[8px] font-black uppercase tracking-widest opacity-50">{meditationPhase}</span>
-            </motion.div>
+            </MotionDiv>
           </div>
 
           <div className="flex gap-4">

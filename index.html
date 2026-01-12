@@ -11,6 +11,8 @@
       body {
         font-family: 'Montserrat', sans-serif;
         background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
       }
       .kahoot-shadow {
         box-shadow: 0 4px 0 0 rgba(0,0,0,0.2);
@@ -45,6 +47,14 @@
         background: #475569;
       }
     </style>
+    <script>
+      // Shim process.env for browser environment to prevent ReferenceErrors
+      window.process = {
+        env: {
+          API_KEY: "" // Will be injected by the environment
+        }
+      };
+    </script>
   <script type="importmap">
 {
   "imports": {

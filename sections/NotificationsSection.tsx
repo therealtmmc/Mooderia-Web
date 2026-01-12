@@ -4,6 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageCircle, Repeat, Bell, CheckCircle2, Inbox } from 'lucide-react';
 import { Notification } from '../types';
 
+// Fix: Cast motion.div to any to resolve intrinsic attribute typing errors (initial, animate, transition)
+const MotionDiv = motion.div as any;
+
 interface NotificationsSectionProps {
   notifications: Notification[];
   isDarkMode: boolean;
@@ -69,7 +72,7 @@ const NotificationsSection: React.FC<NotificationsSectionProps> = ({ notificatio
 
       <div className="space-y-4">
         {notifications.length === 0 ? (
-          <motion.div 
+          <MotionDiv 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
             className={`py-24 text-center rounded-[3rem] border-4 border-dashed ${isDarkMode ? 'border-slate-800' : 'border-gray-200'} opacity-30`}
@@ -77,11 +80,11 @@ const NotificationsSection: React.FC<NotificationsSectionProps> = ({ notificatio
             <Inbox size={64} className="mx-auto mb-4" />
             <p className="text-lg font-black uppercase italic">Quiet Streets Today</p>
             <p className="text-xs font-bold max-w-xs mx-auto mt-2">Express yourself in the Mood tab to start receiving citizen interactions!</p>
-          </motion.div>
+          </MotionDiv>
         ) : (
           <AnimatePresence>
             {notifications.map((notif, i) => (
-              <motion.div
+              <MotionDiv
                 key={notif.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -103,7 +106,7 @@ const NotificationsSection: React.FC<NotificationsSectionProps> = ({ notificatio
                 {!notif.read && (
                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping shadow-lg"></div>
                 )}
-              </motion.div>
+              </MotionDiv>
             ))}
           </AnimatePresence>
         )}

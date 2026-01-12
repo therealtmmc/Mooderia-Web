@@ -5,6 +5,9 @@ import { Heart, Star, Book, Zap, Sparkles, ChevronRight } from 'lucide-react';
 import { ZODIACS, getZodiacFromDate } from '../constants';
 import { getHoroscope, getLovePrediction, getPlanetaryInsights } from '../services/geminiService';
 
+// Fix: Cast motion.div to any to resolve intrinsic attribute typing errors (initial, animate)
+const MotionDiv = motion.div as any;
+
 interface ZodiacSectionProps {
   isDarkMode: boolean;
 }
@@ -155,12 +158,12 @@ const ZodiacSection: React.FC<ZodiacSectionProps> = ({ isDarkMode }) => {
           </button>
 
           {matchResult && (
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="p-6 md:p-8 rounded-3xl border-4 border-[#e21b3c] bg-[#e21b3c]/5">
+            <MotionDiv initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="p-6 md:p-8 rounded-3xl border-4 border-[#e21b3c] bg-[#e21b3c]/5">
               <p className="text-5xl md:text-6xl font-black text-[#e21b3c] mb-4">{matchResult.percentage}%</p>
               <div className="text-left bg-white/50 dark:bg-slate-900/50 p-4 md:p-6 rounded-2xl">
                  <p className={`text-sm md:text-lg font-bold leading-relaxed ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{matchResult.reason}</p>
               </div>
-            </motion.div>
+            </MotionDiv>
           )}
         </div>
       )}
@@ -182,10 +185,10 @@ const ZodiacSection: React.FC<ZodiacSectionProps> = ({ isDarkMode }) => {
             ))}
           </div>
           {horoscope && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`p-6 md:p-8 rounded-3xl border-2 border-yellow-200 dark:border-slate-600 ${isDarkMode ? 'bg-slate-700' : 'bg-white'}`}>
+            <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`p-6 md:p-8 rounded-3xl border-2 border-yellow-200 dark:border-slate-600 ${isDarkMode ? 'bg-slate-700' : 'bg-white'}`}>
               <h4 className="text-xl font-black text-[#ffa602] mb-2 uppercase italic">{horoscope.sign}</h4>
               <p className={`text-sm md:text-lg font-bold leading-relaxed ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{horoscope.text}</p>
-            </motion.div>
+            </MotionDiv>
           )}
           {isLoading && !horoscope && (
             <div className="text-center py-10 animate-pulse font-black text-[#ffa602] uppercase tracking-widest text-xs">
@@ -212,12 +215,12 @@ const ZodiacSection: React.FC<ZodiacSectionProps> = ({ isDarkMode }) => {
             ))}
           </div>
           {planetaryInfo && (
-            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={`p-6 md:p-10 rounded-3xl border-2 border-purple-500 ${isDarkMode ? 'bg-slate-700' : 'bg-white'}`}>
+            <MotionDiv initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={`p-6 md:p-10 rounded-3xl border-2 border-purple-500 ${isDarkMode ? 'bg-slate-700' : 'bg-white'}`}>
                <h4 className="text-xl md:text-3xl font-black mb-6 uppercase text-purple-500 italic">{planetaryInfo.sign} Insights</h4>
                <div className={`text-sm md:text-xl leading-relaxed font-bold space-y-4 whitespace-pre-line ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                  {planetaryInfo.text}
                </div>
-            </motion.div>
+            </MotionDiv>
           )}
           {isLoading && !planetaryInfo && (
             <div className="text-center py-10 animate-pulse font-black text-purple-500 uppercase tracking-widest text-xs">

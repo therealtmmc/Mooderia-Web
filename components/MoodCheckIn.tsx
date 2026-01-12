@@ -3,6 +3,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Mood } from '../types';
 
+// Fix: Cast motion.div to any to resolve intrinsic attribute typing errors
+const MotionDiv = motion.div as any;
+
 interface MoodCheckInProps {
   onSubmit: (mood: Mood) => void;
   isDarkMode: boolean;
@@ -18,7 +21,7 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({ onSubmit, isDarkMode }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <motion.div 
+      <MotionDiv 
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className={`w-full max-w-lg p-8 rounded-3xl text-center ${isDarkMode ? 'bg-slate-800' : 'bg-white'}`}
@@ -38,7 +41,7 @@ const MoodCheckIn: React.FC<MoodCheckInProps> = ({ onSubmit, isDarkMode }) => {
             </button>
           ))}
         </div>
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 };

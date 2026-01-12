@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User } from '../types';
 
+// Fix: Cast motion.div to any to resolve intrinsic attribute typing errors (initial, animate, exit)
+const MotionDiv = motion.div as any;
+
 interface AuthScreenProps {
   onLogin: (user: User) => void;
 }
@@ -66,7 +69,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#1368ce] rounded-full blur-[100px] opacity-30"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#e21b3c] rounded-full blur-[100px] opacity-30"></div>
       
-      <motion.div 
+      <MotionDiv 
         initial={{ y: 50, opacity: 0 }} 
         animate={{ y: 0, opacity: 1 }} 
         className="w-full max-w-md bg-slate-800 border-4 border-white/10 rounded-[2.5rem] shadow-2xl p-8 z-10 text-white"
@@ -79,7 +82,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <AnimatePresence mode="wait">
             {isSignUp && (
-              <motion.div 
+              <MotionDiv 
                 key="signup-fields" 
                 initial={{ height: 0, opacity: 0 }} 
                 animate={{ height: 'auto', opacity: 1 }} 
@@ -110,7 +113,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
                   />
                   <span className="absolute right-3 bottom-1 text-[8px] font-bold opacity-30">{username.length}/20</span>
                 </div>
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
           
@@ -154,7 +157,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onLogin }) => {
             {isSignUp ? 'Already a citizen? Sign In' : "New to Mooderia? Register!"}
           </button>
         </div>
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 };

@@ -13,6 +13,9 @@ import SettingsSection from './sections/SettingsSection';
 import NotificationsSection from './sections/NotificationsSection';
 import AuthScreen from './sections/AuthScreen';
 
+// Fix: Cast motion.div to any to resolve intrinsic attribute typing errors in the current environment
+const MotionDiv = motion.div as any;
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [activeSection, setActiveSection] = useState<Section>('Home');
@@ -23,41 +26,65 @@ const App: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Initial Load from LocalStorage
+  // Initial Load from LocalStorage with defensive parsing
   useEffect(() => {
-    const savedUser = localStorage.getItem('mooderia_user');
-    const savedPosts = localStorage.getItem('mooderia_posts');
-    const savedMessages = localStorage.getItem('mooderia_messages');
-    const savedNotifications = localStorage.getItem('mooderia_notifications');
-    const savedTheme = localStorage.getItem('mooderia_theme');
-    
-    if (savedUser) setCurrentUser(JSON.parse(savedUser));
-    if (savedPosts) setAllPosts(JSON.parse(savedPosts));
-    if (savedMessages) setAllMessages(JSON.parse(savedMessages));
-    if (savedNotifications) setNotifications(JSON.parse(savedNotifications));
-    if (savedTheme === 'dark') setIsDarkMode(true);
-    
-    setIsLoaded(true);
+    try {
+      const savedUser = localStorage.getItem('mooderia_user');
+      const savedPosts = localStorage.getItem('mooderia_posts');
+      const savedMessages = localStorage.getItem('mooderia_messages');
+      const savedNotifications = localStorage.getItem('mooderia_notifications');
+      const savedTheme = localStorage.getItem('mooderia_theme');
+      
+      if (savedUser) {
+        const parsed: User = JSON.parse(savedUser);
+        // Ensure all required arrays exist to prevent runtime crashes
+        setCurrentUser({
+          ...parsed,
+          followers: parsed.followers || [],
+          following: parsed.following || [],
+          friends: parsed.friends || [],
+          blockedUsers: parsed.blockedUsers || [],
+          posts: parsed.posts || [],
+          reposts: parsed.reposts || [],
+          moodHistory: parsed.moodHistory || []
+        });
+      }
+      
+      if (savedPosts) setAllPosts(JSON.parse(savedPosts));
+      if (savedMessages) setAllMessages(JSON.parse(savedMessages));
+      if (savedNotifications) setNotifications(JSON.parse(savedNotifications));
+      if (savedTheme === 'dark') setIsDarkMode(true);
+    } catch (e) {
+      console.error("Critical error loading state from localStorage:", e);
+      // If data is corrupted, clear the user to force re-login
+      localStorage.removeItem('mooderia_user');
+    } finally {
+      setIsLoaded(true);
+    }
   }, []);
 
   // Save state to LocalStorage
   useEffect(() => {
     if (!isLoaded) return;
 
-    if (currentUser) {
-      localStorage.setItem('mooderia_user', JSON.stringify(currentUser));
-      const allUsersStr = localStorage.getItem('mooderia_all_users') || '[]';
-      const allUsers: User[] = JSON.parse(allUsersStr);
-      const userIndex = allUsers.findIndex(u => u.username === currentUser.username);
-      if (userIndex > -1) allUsers[userIndex] = currentUser;
-      else allUsers.push(currentUser);
-      localStorage.setItem('mooderia_all_users', JSON.stringify(allUsers));
-    }
+    try {
+      if (currentUser) {
+        localStorage.setItem('mooderia_user', JSON.stringify(currentUser));
+        const allUsersStr = localStorage.getItem('mooderia_all_users') || '[]';
+        const allUsers: User[] = JSON.parse(allUsersStr);
+        const userIndex = allUsers.findIndex(u => u.username === currentUser.username);
+        if (userIndex > -1) allUsers[userIndex] = currentUser;
+        else allUsers.push(currentUser);
+        localStorage.setItem('mooderia_all_users', JSON.stringify(allUsers));
+      }
 
-    localStorage.setItem('mooderia_posts', JSON.stringify(allPosts));
-    localStorage.setItem('mooderia_messages', JSON.stringify(allMessages));
-    localStorage.setItem('mooderia_notifications', JSON.stringify(notifications));
-    localStorage.setItem('mooderia_theme', isDarkMode ? 'dark' : 'light');
+      localStorage.setItem('mooderia_posts', JSON.stringify(allPosts));
+      localStorage.setItem('mooderia_messages', JSON.stringify(allMessages));
+      localStorage.setItem('mooderia_notifications', JSON.stringify(notifications));
+      localStorage.setItem('mooderia_theme', isDarkMode ? 'dark' : 'light');
+    } catch (e) {
+      console.error("Failed to save state to localStorage:", e);
+    }
   }, [currentUser, allPosts, allMessages, notifications, isDarkMode, isLoaded]);
 
   const addNotification = (type: 'heart' | 'comment' | 'repost', fromUser: string, postId: string, snippet: string) => {
@@ -117,7 +144,6 @@ const App: React.FC = () => {
     setTimeout(() => {
       const citizen = citizens[Math.floor(Math.random() * citizens.length)];
       addNotification('repost', citizen, newPost.id, content);
-      // Create the repost for the simulator citizen
       const simRepost: Post = {
         ...newPost,
         id: Math.random().toString(36).substr(2, 9),
@@ -167,7 +193,7 @@ const App: React.FC = () => {
   const handleLogin = (user: User) => {
     setCurrentUser(user);
     const today = new Date().toDateString();
-    const hasCheckedMoodToday = user.moodHistory.some(m => m.date === today);
+    const hasCheckedMoodToday = (user.moodHistory || []).some(m => m.date === today);
     if (!hasCheckedMoodToday) setIsMoodModalOpen(true);
   };
 
@@ -184,7 +210,7 @@ const App: React.FC = () => {
       ...currentUser,
       moodStreak: (currentUser.moodStreak || 0) + 1,
       lastMoodDate: today,
-      moodHistory: [...currentUser.moodHistory, { date: today, mood }]
+      moodHistory: [...(currentUser.moodHistory || []), { date: today, mood }]
     };
     setCurrentUser(updatedUser);
     setIsMoodModalOpen(false);
@@ -213,17 +239,20 @@ const App: React.FC = () => {
 
   const handleFollow = (username: string) => {
     if (!currentUser) return;
-    const isFollowing = currentUser.following.includes(username);
-    if (isFollowing) setCurrentUser({ ...currentUser, following: currentUser.following.filter(u => u !== username) });
-    else setCurrentUser({ ...currentUser, following: [...currentUser.following, username] });
+    const following = currentUser.following || [];
+    const isFollowing = following.includes(username);
+    if (isFollowing) setCurrentUser({ ...currentUser, following: following.filter(u => u !== username) });
+    else setCurrentUser({ ...currentUser, following: [...following, username] });
   };
 
   const handleBlockUser = (username: string) => {
     if (!currentUser) return;
+    const blocked = currentUser.blockedUsers || [];
+    const following = currentUser.following || [];
     setCurrentUser({
       ...currentUser,
-      blockedUsers: [...currentUser.blockedUsers, username],
-      following: currentUser.following.filter(u => u !== username)
+      blockedUsers: [...blocked, username],
+      following: following.filter(u => u !== username)
     });
   };
 
@@ -234,7 +263,13 @@ const App: React.FC = () => {
 
   const unreadMessages = useMemo(() => allMessages.filter(m => m.recipient === currentUser?.username && !m.read).length, [allMessages, currentUser]);
   const unreadNotifs = useMemo(() => notifications.filter(n => !n.read).length, [notifications]);
-  const visiblePosts = useMemo(() => allPosts.filter(p => !currentUser?.blockedUsers.includes(p.author)), [allPosts, currentUser?.blockedUsers]);
+  
+  const visiblePosts = useMemo(() => {
+    const blocked = currentUser?.blockedUsers || [];
+    return (allPosts || []).filter(p => !blocked.includes(p.author));
+  }, [allPosts, currentUser?.blockedUsers]);
+
+  if (!isLoaded) return <div className="min-h-screen bg-slate-900 flex items-center justify-center font-black text-white uppercase italic tracking-widest animate-pulse">Initializing City...</div>;
 
   if (!currentUser) return <AuthScreen onLogin={handleLogin} />;
 
@@ -255,7 +290,7 @@ const App: React.FC = () => {
         />
 
         <main className="flex-1 p-4 md:p-8 pt-20 pb-24 md:pt-8 md:pb-8 overflow-y-auto custom-scrollbar">
-          <motion.div
+          <MotionDiv
             key={activeSection}
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -283,10 +318,13 @@ const App: React.FC = () => {
                 onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} 
                 onLogout={handleLogout} 
                 user={currentUser} 
-                onUnblock={(u) => setCurrentUser({...currentUser, blockedUsers: currentUser.blockedUsers.filter(b => b !== u)})} 
+                onUnblock={(u) => {
+                  const blocked = currentUser?.blockedUsers || [];
+                  setCurrentUser({...currentUser, blockedUsers: blocked.filter(b => b !== u)} as User);
+                }} 
               />
             )}
-          </motion.div>
+          </MotionDiv>
         </main>
       </div>
     </div>

@@ -5,6 +5,9 @@ import { User, Post } from '../types';
 import { Edit, Heart, MessageCircle, Flame, ShieldCheck, UserPlus, MoreVertical, ShieldAlert, Camera, Palette, Image as ImageIcon, Repeat } from 'lucide-react';
 import { STREAK_BADGES } from '../constants';
 
+// Fix: Cast motion.div to any to resolve intrinsic attribute typing errors (initial, animate, transition)
+const MotionDiv = motion.div as any;
+
 interface ProfileSectionProps {
   user: User;
   allPosts: Post[];
@@ -279,13 +282,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ user, allPosts, isDarkM
         {activeTab === 'Posts' && (
           myPosts.length > 0 ? (
             myPosts.map(post => (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={post.id} className={`p-8 rounded-[2.5rem] ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} shadow-xl border-b-4 border-gray-100 dark:border-slate-700`}>
+              <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={post.id} className={`p-8 rounded-[2.5rem] ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} shadow-xl border-b-4 border-gray-100 dark:border-slate-700`}>
                 <p className="text-lg md:text-xl font-medium leading-relaxed mb-6">{post.content}</p>
                 <div className="flex gap-6 opacity-40 text-xs font-black uppercase">
                   <span className="flex items-center gap-1.5"><Heart size={18} className="text-red-500" /> {post.hearts}</span>
                   <span className="flex items-center gap-1.5"><MessageCircle size={18} className="text-blue-500" /> {post.comments.length}</span>
                 </div>
-              </motion.div>
+              </MotionDiv>
             ))
           ) : (
             <div className="col-span-2 text-center py-24 opacity-30 italic font-black uppercase tracking-[0.3em] text-sm">No City Logs yet</div>
@@ -295,7 +298,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ user, allPosts, isDarkM
         {activeTab === 'Reposts' && (
           myReposts.length > 0 ? (
             myReposts.map(post => (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={post.id} className={`p-8 rounded-[2.5rem] ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} shadow-xl border-b-4 border-green-500/30`}>
+              <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={post.id} className={`p-8 rounded-[2.5rem] ${isDarkMode ? 'bg-slate-800 text-white' : 'bg-white text-slate-900'} shadow-xl border-b-4 border-green-500/30`}>
                 <div className="flex items-center gap-2 mb-4 text-green-500 font-black text-[10px] uppercase italic">
                   <Repeat size={14} /> Reposted from @{post.originalAuthor}
                 </div>
@@ -304,7 +307,7 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ user, allPosts, isDarkM
                   <span className="flex items-center gap-1.5"><Heart size={18} /> {post.hearts}</span>
                   <span className="flex items-center gap-1.5"><MessageCircle size={18} /> {post.comments.length}</span>
                 </div>
-              </motion.div>
+              </MotionDiv>
             ))
           ) : (
             <div className="col-span-2 text-center py-24 opacity-30 italic font-black uppercase tracking-[0.3em] text-sm">No Reposts Found</div>
@@ -326,13 +329,13 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ user, allPosts, isDarkM
                       <span style={{ color: accentColor }}>{Math.round(pct)}%</span>
                     </div>
                     <div className="w-full h-5 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden p-1 shadow-inner">
-                      <motion.div 
+                      <MotionDiv 
                         initial={{ width: 0 }}
                         animate={{ width: `${pct}%` }}
                         transition={{ duration: 1.5, ease: "easeOut" }}
                         className="h-full rounded-full shadow-sm" 
                         style={{ backgroundColor: accentColor }}
-                      ></motion.div>
+                      ></MotionDiv>
                     </div>
                   </div>
                 );
