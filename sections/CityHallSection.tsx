@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, HeartPulse, Send, Stethoscope, Carrot, GraduationCap, BookOpen, AlertTriangle, ShieldCheck, Activity, Users, Search, MessageSquare, ArrowLeft } from 'lucide-react';
-import { getPsychiatristResponse, getNutritionistResponse, getStudyGuideResponse } from '../services/geminiService.ts';
-import { User, Message } from '../types.ts';
+import { getPsychiatristResponse, getNutritionistResponse, getStudyGuideResponse } from '../services/geminiService';
+import { User, Message } from '../types';
 
 interface CityHallSectionProps {
   isDarkMode: boolean;
@@ -22,7 +22,6 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Community State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCitizen, setSelectedCitizen] = useState<User | null>(null);
 
@@ -134,6 +133,54 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
     }
   };
 
+  const renderChatContent = () => {
+    if (activeTab === 'Community') {
+      if (!selectedCitizen) {
+        return (
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-30">
+            <Users size={64} className="mb-4" />
+            <p className="text-lg font-black italic">City Messenger</p>
+            <p className="text-xs font-bold">Search for citizens to start a conversation.</p>
+          </div>
+        );
+      }
+      return (
+        <React.Fragment>
+          {chatMessages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.sender === currentUser.username ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[80%] p-3 md:p-4 rounded-2xl text-xs font-semibold shadow-sm ${msg.sender === currentUser.username ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
+                {msg.text}
+                <p className="text-[8px] mt-1 text-right font-black opacity-40">
+                  {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+            </div>
+          ))}
+        </React.Fragment>
+      );
+    }
+
+    const currentChat = activeTab === 'Pinel' ? pinelChat : activeTab === 'Lavoisier' ? lavoisierChat : clarkChat;
+    return (
+      <React.Fragment>
+        {currentChat.map((msg, i) => (
+          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`max-w-[85%] p-4 rounded-2xl text-xs md:text-sm font-semibold shadow-sm ${msg.role === 'user' ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
+              {msg.text}
+            </div>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 dark:bg-slate-700 p-4 rounded-2xl animate-pulse font-black text-[10px] text-slate-600 dark:text-white uppercase">
+              {getAgentShortName()} is typing...
+            </div>
+          </div>
+        )}
+      </React.Fragment>
+    );
+  };
+
   return (
     <div className="flex flex-col h-[85vh] gap-4">
       <div className="flex flex-wrap gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-2">
@@ -187,7 +234,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
 
              <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
                {searchTerm.trim() ? (
-                 <>
+                 <React.Fragment>
                    <p className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 px-2 mt-2">Search Results</p>
                    {filteredCitizens.map(u => (
                      <button 
@@ -204,9 +251,9 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                        </div>
                      </button>
                    ))}
-                 </>
+                 </React.Fragment>
                ) : (
-                 <>
+                 <React.Fragment>
                    <p className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 px-2 mt-2">Conversations</p>
                    {conversationUsers.map(u => (
                      <button 
@@ -228,7 +275,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                        )}
                      </button>
                    ))}
-                 </>
+                 </React.Fragment>
                )}
              </div>
           </div>
@@ -257,43 +304,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar">
-            {activeTab === 'Community' ? (
-              !selectedCitizen ? (
-                <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-30">
-                  <Users size={64} className="mb-4" />
-                  <p className="text-lg font-black italic">City Messenger</p>
-                  <p className="text-xs font-bold">Search for citizens to start a conversation.</p>
-                </div>
-              ) : (
-                chatMessages.map((msg) => (
-                  <div key={msg.id} className={`flex ${msg.sender === currentUser.username ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] p-3 md:p-4 rounded-2xl text-xs font-semibold shadow-sm ${msg.sender === currentUser.username ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
-                      {msg.text}
-                      <p className="text-[8px] mt-1 text-right font-black opacity-40">
-                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )
-            ) : (
-              <>
-                {(activeTab === 'Pinel' ? pinelChat : activeTab === 'Lavoisier' ? lavoisierChat : clarkChat).map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-4 rounded-2xl text-xs md:text-sm font-semibold shadow-sm ${msg.role === 'user' ? 'bg-[#1368ce] text-white rounded-tr-none' : 'bg-gray-100 dark:bg-slate-700 text-slate-800 dark:text-white rounded-tl-none border-b-2 border-gray-200 dark:border-slate-600'}`}>
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="bg-gray-100 dark:bg-slate-700 p-4 rounded-2xl animate-pulse font-black text-[10px] text-slate-600 dark:text-white uppercase">
-                      {getAgentShortName()} is typing...
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+            {renderChatContent()}
           </div>
 
           {(activeTab !== 'Community' || selectedCitizen) && (

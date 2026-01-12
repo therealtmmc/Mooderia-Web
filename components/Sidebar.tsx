@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Home, Smile, Moon, Building2, User, Settings, Bell, LucideProps } from 'lucide-react';
 import { Section, User as UserType } from '../types';
@@ -24,7 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, isDarkMode
   ];
 
   return (
-    <>
+    <React.Fragment>
       {/* Mobile Top Header */}
       <div className={`md:hidden fixed top-0 left-0 right-0 z-50 px-6 py-4 flex justify-between items-center ${isDarkMode ? 'bg-slate-900/80' : 'bg-white/80'} backdrop-blur-md border-b ${isDarkMode ? 'border-slate-800' : 'border-gray-100'}`}>
         <h1 className="text-xl font-black tracking-tighter text-[#46178f] italic">MOODERIA</h1>
@@ -44,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, isDarkMode
               onClick={() => onNavigate(item.id)}
               className={`relative flex flex-col items-center justify-center gap-1 transition-all flex-1 py-1 rounded-xl ${activeSection === item.id ? 'text-[#46178f] scale-110' : 'text-gray-400 opacity-60'}`}
             >
-              {React.cloneElement(item.icon, { size: activeSection === item.id ? 24 : 20 })}
+              {React.cloneElement(item.icon, { size: activeSection === item.id ? 24 : 20 } as any)}
               {item.id === 'CityHall' && unreadMessages > 0 && (
                 <span className="absolute top-1 right-3 w-4 h-4 bg-[#e21b3c] text-white text-[10px] font-black rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900">{unreadMessages}</span>
               )}
@@ -95,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onNavigate, isDarkMode
            </div>
         </div>
       </aside>
-    </>
+    </React.Fragment>
   );
 };
 

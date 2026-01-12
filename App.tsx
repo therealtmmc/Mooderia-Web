@@ -1,19 +1,17 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mood, Section, Post, Comment, Message, Notification } from './types.ts';
-import Sidebar from './components/Sidebar.tsx';
-import MoodCheckIn from './components/MoodCheckIn.tsx';
-import HomeSection from './sections/HomeSection.tsx';
-import MoodSection from './sections/MoodSection.tsx';
-import ZodiacSection from './sections/ZodiacSection.tsx';
-import CityHallSection from './sections/CityHallSection.tsx';
-import ProfileSection from './sections/ProfileSection.tsx';
-import SettingsSection from './sections/SettingsSection.tsx';
-import NotificationsSection from './sections/NotificationsSection.tsx';
-import AuthScreen from './sections/AuthScreen.tsx';
+import { User, Mood, Section, Post, Comment, Message, Notification } from './types';
+import Sidebar from './components/Sidebar';
+import MoodCheckIn from './components/MoodCheckIn';
+import HomeSection from './sections/HomeSection';
+import MoodSection from './sections/MoodSection';
+import ZodiacSection from './sections/ZodiacSection';
+import CityHallSection from './sections/CityHallSection';
+import ProfileSection from './sections/ProfileSection';
+import SettingsSection from './sections/SettingsSection';
+import NotificationsSection from './sections/NotificationsSection';
+import AuthScreen from './sections/AuthScreen';
 
-// Fix: Cast motion.div to any to resolve environment typing issues
 const MotionDiv = motion.div as any;
 
 const App: React.FC = () => {
@@ -27,7 +25,6 @@ const App: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  // Initial Load with massive safety guards
   useEffect(() => {
     try {
       const savedUser = localStorage.getItem('mooderia_user');
@@ -62,7 +59,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Sync state to local storage safely
   useEffect(() => {
     if (!isLoaded || hasError) return;
     try {
@@ -101,7 +97,6 @@ const App: React.FC = () => {
     };
     setAllPosts(prev => [newPost, ...prev]);
 
-    // Citizens interaction simulation
     const citizens = ['NeoCitizen', 'VibeExplorer', 'CyberPanda'];
     setTimeout(() => {
       const citizen = citizens[Math.floor(Math.random() * citizens.length)];
