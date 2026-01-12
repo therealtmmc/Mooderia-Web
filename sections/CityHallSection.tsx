@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, HeartPulse, Send, Stethoscope, Carrot, GraduationCap, BookOpen, AlertTriangle, ShieldCheck, Activity, Users, Search, MessageSquare, ArrowLeft } from 'lucide-react';
-import { getPsychiatristResponse, getNutritionistResponse, getStudyGuideResponse } from '../services/geminiService';
-import { User, Message } from '../types';
+import { getPsychiatristResponse, getNutritionistResponse, getStudyGuideResponse } from '../services/geminiService.ts';
+import { User, Message } from '../types.ts';
 
 interface CityHallSectionProps {
   isDarkMode: boolean;
@@ -269,7 +269,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                          <p className={`text-[10px] font-bold ${selectedCitizen?.username === u.username ? 'text-white/60' : 'opacity-40'} truncate italic`}>{u.title || 'Citizen'}</p>
                        </div>
                        {unreadPerUser[u.username] > 0 && selectedCitizen?.username !== u.username && (
-                         <span className="w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white font-black border-2 border-white dark:border-slate-800">
+                         <span className="w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white font-black border-2 border-white dark:ring-slate-800 ring-2 ring-white">
                            {unreadPerUser[u.username]}
                          </span>
                        )}
