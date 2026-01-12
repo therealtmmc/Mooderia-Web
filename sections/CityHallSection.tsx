@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, HeartPulse, Send, Stethoscope, Carrot, GraduationCap, BookOpen, AlertTriangle, ShieldCheck, Activity, Users, Search, MessageSquare, ArrowLeft } from 'lucide-react';
-import { getPsychiatristResponse, getNutritionistResponse, getStudyGuideResponse } from '../services/geminiService';
-import { User, Message } from '../types';
+import { getPsychiatristResponse, getNutritionistResponse, getStudyGuideResponse } from '../services/geminiService.ts';
+import { User, Message } from '../types.ts';
 
 interface CityHallSectionProps {
   isDarkMode: boolean;
@@ -28,7 +27,11 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
   const [selectedCitizen, setSelectedCitizen] = useState<User | null>(null);
 
   const allUsers: User[] = useMemo(() => {
-    return JSON.parse(localStorage.getItem('mooderia_all_users') || '[]');
+    try {
+      return JSON.parse(localStorage.getItem('mooderia_all_users') || '[]');
+    } catch (e) {
+      return [];
+    }
   }, []);
 
   const filteredCitizens = useMemo(() => {
@@ -71,7 +74,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
     if (selectedCitizen && activeTab === 'Community') {
       onReadMessages(selectedCitizen.username);
     }
-  }, [selectedCitizen, messages.length, activeTab]);
+  }, [selectedCitizen, messages.length, activeTab, onReadMessages]);
 
   const handleAISend = async () => {
     if (!input.trim() || isLoading) return;
@@ -115,6 +118,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
       case 'Lavoisier': return 'Dr. Antoine Lavoisier (Nutritionist)';
       case 'RonClark': return 'Sir Clark (Study Guide)';
       case 'Community': return 'Citizens Community';
+      default: return 'City Hall';
     }
   };
 
@@ -124,6 +128,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
       case 'Lavoisier': return 'Dr. Lavoisier';
       case 'RonClark': return 'Sir Clark';
       case 'Community': return selectedCitizen?.displayName || 'Citizen';
+      default: return 'Agent';
     }
   };
 
@@ -157,7 +162,6 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
           COMMUNITY
           {Object.values(unreadPerUser).length > 0 && (
             <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center border-2 border-white dark:border-slate-800">
-              {/* Fix: Explicitly type reduce parameters to resolve TypeScript error where types are inferred as unknown */}
               {Object.values(unreadPerUser).reduce((a: number, b: number) => a + b, 0)}
             </span>
           )}
@@ -193,7 +197,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                        className={`w-full p-3 rounded-xl flex items-center gap-3 transition-colors ${selectedCitizen?.username === u.username ? 'bg-blue-500 text-white' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                      >
                        <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-slate-600 flex items-center justify-center text-[10px] font-black shrink-0">
-                         {u.profilePic ? <img src={u.profilePic} className="w-full h-full object-cover rounded-full" /> : u.displayName[0]}
+                         {u.profilePic ? <img src={u.profilePic} alt={u.displayName} className="w-full h-full object-cover rounded-full" /> : u.displayName[0]}
                        </div>
                        <div className="text-left truncate">
                          <p className="font-black text-[11px] truncate">{u.displayName}</p>
@@ -213,7 +217,7 @@ const CityHallSection: React.FC<CityHallSectionProps> = ({ isDarkMode, currentUs
                        className={`w-full p-3 rounded-xl flex items-center gap-3 transition-colors relative ${selectedCitizen?.username === u.username ? 'bg-blue-500 text-white' : 'hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                      >
                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-slate-600 flex items-center justify-center text-xs font-black shrink-0">
-                         {u.profilePic ? <img src={u.profilePic} className="w-full h-full object-cover rounded-full" /> : u.displayName[0]}
+                         {u.profilePic ? <img src={u.profilePic} alt={u.displayName} className="w-full h-full object-cover rounded-full" /> : u.displayName[0]}
                        </div>
                        <div className="text-left flex-1 min-w-0">
                          <p className="font-black text-xs truncate">{u.displayName}</p>
