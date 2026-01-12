@@ -1,17 +1,17 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mood, Section, Post, Comment, Message, Notification } from './types';
-import Sidebar from './components/Sidebar';
-import MoodCheckIn from './components/MoodCheckIn';
-import HomeSection from './sections/HomeSection';
-import MoodSection from './sections/MoodSection';
-import ZodiacSection from './sections/ZodiacSection';
-import CityHallSection from './sections/CityHallSection';
-import ProfileSection from './sections/ProfileSection';
-import SettingsSection from './sections/SettingsSection';
-import NotificationsSection from './sections/NotificationsSection';
-import AuthScreen from './sections/AuthScreen';
+import { User, Mood, Section, Post, Comment, Message, Notification } from './types.ts';
+import Sidebar from './components/Sidebar.tsx';
+import MoodCheckIn from './components/MoodCheckIn.tsx';
+import HomeSection from './sections/HomeSection.tsx';
+import MoodSection from './sections/MoodSection.tsx';
+import ZodiacSection from './sections/ZodiacSection.tsx';
+import CityHallSection from './sections/CityHallSection.tsx';
+import ProfileSection from './sections/ProfileSection.tsx';
+import SettingsSection from './sections/SettingsSection.tsx';
+import NotificationsSection from './sections/NotificationsSection.tsx';
+import AuthScreen from './sections/AuthScreen.tsx';
 
 // Fix: Cast motion.div to any to resolve environment typing issues
 const MotionDiv = motion.div as any;
@@ -155,47 +155,115 @@ const App: React.FC = () => {
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900 text-white' : 'bg-gray-50 text-slate-900'} transition-colors duration-300`}>
       <AnimatePresence>
-        {isMoodModalOpen && <MoodCheckIn onSubmit={(mood) => {
-          const today = new Date().toDateString();
-          setCurrentUser({
-            ...currentUser,
-            moodStreak: (currentUser.moodStreak || 0) + 1,
-            moodHistory: [...(currentUser.moodHistory || []), { date: today, mood }]
-          });
-          setIsMoodModalOpen(false);
-        }} isDarkMode={isDarkMode} />}
+        {isMoodModalOpen && (
+          <MoodCheckIn 
+            isDarkMode={isDarkMode}
+            onSubmit={(mood) => {
+              const today = new Date().toDateString();
+              setCurrentUser(prev => {
+                if (!prev) return null;
+                const newHistory = [...(prev.moodHistory || []), { date: today, mood }];
+                let streak = prev.moodStreak || 0;
+                if (prev.lastMoodDate) {
+                  const last = new Date(prev.lastMoodDate);
+                  const now = new Date(today);
+                  const diffTime = Math.abs(now.getTime() - last.getTime());
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  if (diffDays === 1) streak += 1;
+                  else if (diffDays > 1) streak = 1;
+                } else {
+                  streak = 1;
+                }
+                return { ...prev, moodHistory: newHistory, moodStreak: streak, lastMoodDate: today };
+              });
+              setIsMoodModalOpen(false);
+            }} 
+          />
+        )}
       </AnimatePresence>
 
       <div className="flex flex-col md:flex-row min-h-screen">
         <Sidebar 
-          activeSection={activeSection} onNavigate={setActiveSection} isDarkMode={isDarkMode} user={currentUser}
-          unreadMessages={unreadMessages} unreadNotifications={unreadNotifs}
+          activeSection={activeSection} 
+          onNavigate={setActiveSection} 
+          isDarkMode={isDarkMode} 
+          user={currentUser}
+          unreadMessages={unreadMessages}
+          unreadNotifications={unreadNotifs}
         />
 
-        <main className="flex-1 p-4 md:p-8 pt-20 pb-24 md:pt-8 md:pb-8 overflow-y-auto custom-scrollbar">
-          <MotionDiv key={activeSection} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-5xl mx-auto">
-            {activeSection === 'Home' && <HomeSection user={currentUser} posts={visiblePosts} isDarkMode={isDarkMode} />}
+        <main className="flex-1 p-4 md:p-8 lg:p-12 mt-16 md:mt-0 overflow-y-auto">
+          <MotionDiv
+            key={activeSection}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeSection === 'Home' && <HomeSection user={currentUser} posts={allPosts} isDarkMode={isDarkMode} />}
             {activeSection === 'Mood' && (
               <MoodSection 
-                user={currentUser} posts={visiblePosts} onPost={addPost} 
-                onHeart={(pid) => setAllPosts(prev => prev.map(p => p.id === pid ? { ...p, hearts: p.hearts + 1 } : p))} 
-                onComment={(pid, text) => setAllPosts(prev => prev.map(p => p.id === pid ? { ...p, comments: [...p.comments, { id: Math.random().toString(), author: currentUser.username, text, replies: [] }] } : p))}
-                onRepost={(post) => setAllPosts(prev => [{ ...post, id: Math.random().toString(), author: currentUser.username, isRepost: true, originalAuthor: post.author, timestamp: Date.now() }, ...prev])} 
-                onFollow={(u) => setCurrentUser({ ...currentUser, following: currentUser.following.includes(u) ? currentUser.following.filter(f => f !== u) : [...currentUser.following, u] })} 
-                onBlock={(u) => setCurrentUser({ ...currentUser, blockedUsers: [...currentUser.blockedUsers, u] })} isDarkMode={isDarkMode} 
+                user={currentUser} 
+                posts={visiblePosts} 
+                onPost={addPost} 
+                onHeart={(id) => setAllPosts(prev => prev.map(p => p.id === id ? { ...p, hearts: p.hearts + 1 } : p))}
+                onComment={(id, text) => {
+                  const newComment: Comment = { id: Math.random().toString(36).substr(2, 9), author: currentUser.username, text, replies: [] };
+                  setAllPosts(prev => prev.map(p => p.id === id ? { ...p, comments: [...p.comments, newComment] } : p));
+                  addNotification('comment', currentUser.username, id, text);
+                }}
+                onRepost={(post) => {
+                  const repost: Post = { ...post, id: Math.random().toString(36).substr(2, 9), author: currentUser.username, isRepost: true, originalAuthor: post.author, timestamp: Date.now() };
+                  setAllPosts(prev => [repost, ...prev]);
+                  addNotification('repost', currentUser.username, post.id, post.content);
+                }}
+                onFollow={(username) => setCurrentUser(prev => prev ? { ...prev, following: [...prev.following, username] } : null)}
+                onBlock={(username) => setCurrentUser(prev => prev ? { ...prev, blockedUsers: [...prev.blockedUsers, username] } : null)}
+                isDarkMode={isDarkMode} 
               />
             )}
             {activeSection === 'Zodiac' && <ZodiacSection isDarkMode={isDarkMode} />}
             {activeSection === 'CityHall' && (
               <CityHallSection 
-                isDarkMode={isDarkMode} currentUser={currentUser} messages={allMessages} 
-                onSendMessage={(recipient, text) => setAllMessages(prev => [...prev, { id: Math.random().toString(), sender: currentUser.username, recipient, text, timestamp: Date.now(), read: false }])} 
-                onReadMessages={(from) => setAllMessages(prev => prev.map(m => m.sender === from && m.recipient === currentUser.username ? { ...m, read: true } : m))} 
+                isDarkMode={isDarkMode} 
+                currentUser={currentUser} 
+                messages={allMessages}
+                onSendMessage={(recipient, text) => {
+                  const msg: Message = { id: Math.random().toString(36).substr(2, 9), sender: currentUser.username, recipient, text, timestamp: Date.now(), read: false };
+                  setAllMessages(prev => [...prev, msg]);
+                }}
+                onReadMessages={(withUsername) => {
+                  setAllMessages(prev => prev.map(m => (m.sender === withUsername && m.recipient === currentUser.username) ? { ...m, read: true } : m));
+                }}
               />
             )}
-            {activeSection === 'Notifications' && <NotificationsSection notifications={notifications} isDarkMode={isDarkMode} onMarkRead={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))} />}
-            {activeSection === 'Profile' && <ProfileSection user={currentUser} allPosts={visiblePosts} isDarkMode={isDarkMode} onEditProfile={(d, u, p, t, b, c) => setCurrentUser({ ...currentUser, displayName: d, username: u, profilePic: p, title: t, bannerPic: b, profileColor: c })} onBlock={(u) => setCurrentUser({ ...currentUser, blockedUsers: [...currentUser.blockedUsers, u] })} />}
-            {activeSection === 'Settings' && <SettingsSection isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} onLogout={handleLogout} user={currentUser} onUnblock={(u) => setCurrentUser({ ...currentUser, blockedUsers: currentUser.blockedUsers.filter(b => b !== u) })} />}
+            {activeSection === 'Notifications' && (
+              <NotificationsSection 
+                notifications={notifications} 
+                isDarkMode={isDarkMode} 
+                onMarkRead={() => setNotifications(prev => prev.map(n => ({ ...n, read: true })))} 
+              />
+            )}
+            {activeSection === 'Profile' && (
+              <ProfileSection 
+                user={currentUser} 
+                allPosts={allPosts} 
+                isDarkMode={isDarkMode} 
+                onEditProfile={(dn, un, pp, title, bp, pc) => {
+                  setCurrentUser(prev => prev ? { ...prev, displayName: dn, username: un, profilePic: pp, title, bannerPic: bp, profileColor: pc } : null);
+                }}
+                onBlock={(un) => setCurrentUser(prev => prev ? { ...prev, blockedUsers: [...prev.blockedUsers, un] } : null)}
+              />
+            )}
+            {activeSection === 'Settings' && (
+              <SettingsSection 
+                isDarkMode={isDarkMode} 
+                onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} 
+                onLogout={handleLogout} 
+                user={currentUser}
+                onUnblock={(un) => setCurrentUser(prev => prev ? { ...prev, blockedUsers: prev.blockedUsers.filter(u => u !== un) } : null)}
+              />
+            )}
           </MotionDiv>
         </main>
       </div>

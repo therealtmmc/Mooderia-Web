@@ -1,14 +1,11 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Safe initialization of AI client
-const getAI = () => {
-  const apiKey = process.env.API_KEY || "";
-  return new GoogleGenAI({ apiKey });
-};
+// Initialize the Google GenAI client with the API key from environment variables.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const getPsychiatristResponse = async (message: string) => {
-  const ai = getAI();
+  // Generate content using gemini-3-pro-preview for complex reasoning tasks.
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: message,
@@ -20,7 +17,7 @@ export const getPsychiatristResponse = async (message: string) => {
 };
 
 export const getNutritionistResponse = async (message: string) => {
-  const ai = getAI();
+  // Generate content using gemini-3-pro-preview for detailed nutritional advice.
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: message,
@@ -32,7 +29,7 @@ export const getNutritionistResponse = async (message: string) => {
 };
 
 export const getStudyGuideResponse = async (message: string) => {
-  const ai = getAI();
+  // Generate content using gemini-3-pro-preview for high-quality educational guidance.
   const response = await ai.models.generateContent({
     model: 'gemini-3-pro-preview',
     contents: message,
@@ -44,7 +41,7 @@ export const getStudyGuideResponse = async (message: string) => {
 };
 
 export const getTellerResponse = async (question: string) => {
-  const ai = getAI();
+  // Use gemini-3-flash-preview for basic text tasks like simple Q&A.
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Predict the answer to this question in a mystical way: ${question}`,
@@ -56,7 +53,7 @@ export const getTellerResponse = async (question: string) => {
 };
 
 export const getHoroscope = async (sign: string) => {
-  const ai = getAI();
+  // Daily horoscope using flash model for efficiency.
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Provide a daily horoscope for ${sign} today.`,
@@ -68,7 +65,7 @@ export const getHoroscope = async (sign: string) => {
 };
 
 export const getPlanetaryInsights = async (sign: string) => {
-  const ai = getAI();
+  // Cosmic insights using flash model.
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `Explain how current planetary movements affect the mood of a ${sign} today.`,
@@ -80,7 +77,7 @@ export const getPlanetaryInsights = async (sign: string) => {
 };
 
 export const getLovePrediction = async (sign1: string, sign2: string) => {
-    const ai = getAI();
+    // Structured JSON response for compatibility prediction using Google GenAI SDK.
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Predict love compatibility between ${sign1} and ${sign2}. Return only a JSON object with 'percentage' and 'reason'.`,
@@ -97,6 +94,7 @@ export const getLovePrediction = async (sign1: string, sign2: string) => {
         }
     });
     
+    // Extract generated text as a property.
     const text = response.text;
     if (!text) throw new Error("No response text");
     return JSON.parse(text.trim());
